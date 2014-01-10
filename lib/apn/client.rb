@@ -13,16 +13,18 @@ module APN
     def push(message)
       socket.write(message.to_s)
       socket.flush
-
+      
+      APN.log(:debug, "Message sent.")
+      true
+    rescue OpenSSL::SSL::SSLError, Errno::EPIPE => e
+      # If an error occurs error Apple breaks the connection after sending an error packet
+      # Try to read and decode the error packet
       if IO.select([socket], nil, nil, 1) && error = socket.read(6)
         error = error.unpack("ccN")
         APN.log(:error, "Error on message: #{error}")
         return false
       end
-
-      APN.log(:debug, "Message sent.")
-      true
-    rescue OpenSSL::SSL::SSLError, Errno::EPIPE => e
+      
       APN.log(:error, "[##{self.object_id}] Exception occurred: #{e.inspect}, socket state: #{socket.inspect}")
       reset_socket
       APN.log(:debug, "[##{self.object_id}] Socket reestablished, socket state: #{socket.inspect}")
