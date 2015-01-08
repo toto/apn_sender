@@ -57,7 +57,7 @@ module APN
     end
 
     def setup_certificate
-      ctx = OpenSSL::SSL::SSLContext.new
+      ctx = OpenSSL::SSL::SSLContext.new(:TLSv1)
       ctx.cert = OpenSSL::X509::Certificate.new(@apn_cert)
       if @cert_pass
         ctx.key = OpenSSL::PKey::RSA.new(@apn_cert, @cert_pass)
